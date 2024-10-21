@@ -1,0 +1,40 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/product.schema.json",
+    "title": "Prompt",
+    "description": "A prompt in the Quiplash game",
+    "type": "object",
+    "properties": {
+        "username": {
+            "description": "The name of the player that created the prompt",
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 15
+        },
+        "texts": {
+            "description": "Unordered list of pairs of a prompt and it's language",
+            "type": "array",
+            "items": {
+                "description": "A prompt and it's language",
+                "type": "object",
+                "properties": {
+                    "language": {
+                        "description": "The language of the prompt",
+                        "type": "string",
+                        "minimum": 2
+                    },
+                    "text": {
+                        "description": "The prompt text",
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 100
+                    }
+                },
+                "minItems": 1,
+                "uniqueItems": true,
+                "required": ["language", "text"]
+            }
+        },
+        "required": ["username", "texts"]
+    }
+  }

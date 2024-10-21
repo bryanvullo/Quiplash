@@ -1,0 +1,32 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/product.schema.json",
+    "title": "Player",
+    "description": "A player in the Quiplash game",
+    "type": "object",
+    "properties": {
+        "username": {
+            "description": "The name of the player",
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 15
+        },
+        "password": {
+            "description": "The password of the player",
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 15
+        },
+        "games_played": {
+            "description": "The number of games the player has played",
+            "type": "integer",
+            "minimum": 0
+        },
+        "total_score": {
+            "description": "The score of the player",
+            "type": "integer",
+            "minimum": 0
+        }
+    },
+    "required": ["username", "password", "games_played", "total_score"]
+  }
