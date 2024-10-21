@@ -1,3 +1,5 @@
+import json
+
 class Player:
     def __init__(self, id, username, password, games_played, total_score):
         self.id = id
