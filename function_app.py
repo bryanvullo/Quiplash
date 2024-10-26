@@ -1,6 +1,9 @@
 import azure.functions as func
 import logging
 import json
+import os
+from azure.cosmos import CosmosClient
+from azure.cosmos.exceptions import CosmosHttpResponseError
 
 app = func.FunctionApp()
 
@@ -9,6 +12,14 @@ app = func.FunctionApp()
 # TODO - prompt "username" partition key
 # TODO - update local.settings.json with Azure Text Translation and OpenAI keys and function keys
 # TODO - return appropriate status codes
+
+# TODO: prompt limit in translation doent not apply
+# TODO: put the keys in the local.settings.json
+
+MyCosmos = CosmosClient.from_connection_string(os.environ['AzureCosmosDBConnectionString'])
+QuiplashDBProxy = MyCosmos.get_database_client(os.environ['DatabaseName'])
+PlayerContainerProxy = QuiplashDBProxy.get_container_client(os.environ['PlayerContainerName'])
+PromptContainerProxy = QuiplashDBProxy.get_container_client(os.environ['PromptContainerName'])
 
 @app.route(route="myFirstFunction", auth_level=func.AuthLevel.ANONYMOUS)
 def myFirstFunction(req: func.HttpRequest) -> func.HttpResponse:
@@ -43,6 +54,7 @@ def registerPlayer(req: func.HttpRequest) -> func.HttpResponse:
     username = input.get('username')
     password = input.get('password')
 
+    # check if username and password are valid
     if len(username) < 5 or len(password) > 15:
         return func.HttpResponse(
             body = json.dumps({"result": False, "msg": "Username less than 8 characters or more than 15 characters" })
@@ -52,10 +64,24 @@ def registerPlayer(req: func.HttpRequest) -> func.HttpResponse:
             body = json.dumps({"result": False, "msg": "Password less than 8 characters or more than 15 characters" })
         )
     
-    # TODO: check if username already exists
+    # check if username already exists
+    result = PlayerContainerProxy.query_items(
+        query='SELECT * FROM p WHERE p.username = @username',
+        parameters=[dict(name='@username', value=username)]
+    )
+    if len(list(result)) > 0:
+        return func.HttpResponse(
+            body = json.dumps({"result": False, "msg": "Username already exists" })
+        )
 
-    # else
-    # TODO create player in DB, set GP ans TS to 0
+    # create player in DB, set GP ans TS to 0
+    playerDict = {
+        "username" : username,
+        "password" : password,
+        "games_played" : 0,
+        "total_score" : 0
+    }
+    PlayerContainerProxy.create_item(body=playerDict, enable_automatic_id_generation=True)
     return func.HttpResponse(
         body = json.dumps({"result": True, "msg": "OK" })
     )
@@ -119,7 +145,6 @@ def createPrompt(req: func.HttpRequest) -> func.HttpResponse:
     #    )
 
     # TODO: check if prompt text is valid (length 20 - 100)
-    # TODO: ???ask about if prompt larger than 100 characters in translation???
     # return func.HttpResponse(
     #         body = json.dumps({"result": False, "msg": "Prompt less than 20 characters or more than 100 characters" })
     #     )
