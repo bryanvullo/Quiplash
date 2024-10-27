@@ -68,7 +68,7 @@ def registerPlayer(req: func.HttpRequest) -> func.HttpResponse:
     
     # check if username already exists
     result = PlayerContainerProxy.query_items(
-        query='SELECT * FROM p WHERE p.username = @username',
+        query='SELECT * FROM player WHERE player.username = @username',
         parameters=[dict(name='@username', value=username)],
         enable_cross_partition_query=True
     )
@@ -98,14 +98,22 @@ def loginPlayer(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Login Player')
 
-    input = req.get_json()
-    username = input.get('username')
-    password = input.get('password')
+    input = json.loads( req.get_json() )
+    username = input['username']
+    password = input['password']
 
-    # TODO: check if username and password match in DB
-    # return func.HttpResponse(
-    #         body = json.dumps({"result": False, "msg": "Username or password incorrect" })
-    #     )
+    # check if username and password match in DB
+    result = PlayerContainerProxy.query_items(
+        query='SELECT * FROM player WHERE player.username = @username AND player.password = @password',
+        parameters=[dict(name='@username', value=username), dict(name='@password', value=password)],
+        enable_cross_partition_query=True
+    )
+
+    if len(list(result)) == 0:
+        return func.HttpResponse(
+            body = json.dumps({"result": False, "msg": "Username or password incorrect" }),
+            status_code=401
+        )
     
     return func.HttpResponse(
         body = json.dumps({"result": True, "msg": "OK" })
