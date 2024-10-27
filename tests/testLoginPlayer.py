@@ -8,7 +8,7 @@ from pathlib import Path
 
 class TestLoginPlayer(unittest.TestCase):   
     LOCAL_DEV_URL = "http://localhost:7071/"
-    PUBLIC_URL = "<Your deployment URL here>/"
+    PUBLIC_URL = "https://quiplash-2425-bv1g22.azurewebsites.net/"
     TEST_FUNCTION = "player/login"
     TEST_URL = LOCAL_DEV_URL + TEST_FUNCTION
     

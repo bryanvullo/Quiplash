@@ -8,7 +8,7 @@ from pathlib import Path
 
 class TestRegiterPlayer(unittest.TestCase):   
     LOCAL_DEV_URL = "http://localhost:7071/player/register"
-    PUBLIC_URL = "<Your deployment URL here>/player/register"
+    PUBLIC_URL = "https://quiplash-2425-bv1g22.azurewebsites.net/player/register"
     TEST_URL = LOCAL_DEV_URL
     
     pathToSettings = Path(__file__).parent.parent / 'local.settings.json'
