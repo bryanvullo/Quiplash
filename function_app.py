@@ -50,28 +50,32 @@ def registerPlayer(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Register Player')
 
-    input = req.get_json()
-    username = input.get('username')
-    password = input.get('password')
+    input = json.loads( req.get_json() )
+    username = input['username']
+    password = input['password']
 
     # check if username and password are valid
-    if len(username) < 5 or len(password) > 15:
+    if len(username) < 5 or len(username) > 15:
         return func.HttpResponse(
-            body = json.dumps({"result": False, "msg": "Username less than 8 characters or more than 15 characters" })
+            body = json.dumps({"result": False, "msg": "Username less than 5 characters or more than 15 characters" }),
+            status_code=400
         )
     if len(password) < 8 or len(password) > 15:
         return func.HttpResponse(
-            body = json.dumps({"result": False, "msg": "Password less than 8 characters or more than 15 characters" })
+            body = json.dumps({"result": False, "msg": "Password less than 8 characters or more than 15 characters" }),
+            status_code=400
         )
     
     # check if username already exists
     result = PlayerContainerProxy.query_items(
         query='SELECT * FROM p WHERE p.username = @username',
-        parameters=[dict(name='@username', value=username)]
+        parameters=[dict(name='@username', value=username)],
+        enable_cross_partition_query=True
     )
     if len(list(result)) > 0:
         return func.HttpResponse(
-            body = json.dumps({"result": False, "msg": "Username already exists" })
+            body = json.dumps({"result": False, "msg": "Username already exists" }),
+            status_code=400
         )
 
     # create player in DB, set GP ans TS to 0
@@ -83,7 +87,8 @@ def registerPlayer(req: func.HttpRequest) -> func.HttpResponse:
     }
     PlayerContainerProxy.create_item(body=playerDict, enable_automatic_id_generation=True)
     return func.HttpResponse(
-        body = json.dumps({"result": True, "msg": "OK" })
+        body = json.dumps({"result": True, "msg": "OK" }),
+        status_code=200
     )
 
 @app.route(route="player/login", auth_level=func.AuthLevel.FUNCTION, methods=["GET"])
