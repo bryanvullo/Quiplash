@@ -7,14 +7,11 @@ from azure.cosmos.exceptions import CosmosHttpResponseError
 
 app = func.FunctionApp()
 
-# TODO - add uniqueness in player username
-# TODO - player "id" partition key
-# TODO - prompt "username" partition key
 # TODO - update local.settings.json with Azure Text Translation and OpenAI keys and function keys
-# TODO - return appropriate status codes
 
 # TODO: prompt limit in translation doent not apply
-# TODO: put the keys in the local.settings.json
+# TODO: ask if there are boundaries to score_to_add and game_to_add
+# TODO: return error?? line 144 len(list(result)) > 1
 
 MyCosmos = CosmosClient.from_connection_string(os.environ['AzureCosmosDBConnectionString'])
 QuiplashDBProxy = MyCosmos.get_database_client(os.environ['DatabaseName'])
@@ -126,19 +123,45 @@ def updatePlayer(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Update Player')
 
-    input = req.get_json()
-    username = input.get('username')
-    game_to_add = input.get('add_to_games_played')
-    score_to_add = input.get('add_to_score')
+    input = json.loads( req.get_json() )
+    username = input['username']
+    game_to_add = input['add_to_games_played']
+    score_to_add = input['add_to_score']
 
-    # TODO: check if username exists in DB
-    # return func.HttpResponse(
-    #         body = json.dumps({"result": False, "msg": "Player does not exist" })
-    #     )
+    # check if username exists in DB
+    result = PlayerContainerProxy.query_items(
+        query='SELECT * FROM player WHERE player.username = @username',
+        parameters=[dict(name='@username', value=username)],
+        enable_cross_partition_query=True
+    )
+    result = list(result)
+    if len(result) == 0:
+        return func.HttpResponse(
+            body = json.dumps({"result": False, "msg": "Player does not exist" }),
+            status_code=400
+        )
+    elif len(result) > 1:
+        # TODO: return error??
+        pass
+    logging.info('Update Player: Player exists')
+    
+    # get player's games_played and total_score
+    player = json.loads(json.dumps(result[0]))
+    player_id = player['id']
+    player['games_played'] += game_to_add
+    player['total_score'] += score_to_add
 
-    # TODO: update player in DB
+    # update player in DB
+    PlayerContainerProxy.replace_item(
+        item=player_id,
+        body=player
+    )
+
+    logging.info('Update Player: Player updated')
+
     return func.HttpResponse(
-        body = json.dumps({"result": True, "msg": "OK" })
+        body = json.dumps({"result": True, "msg": "OK" }),
+        status_code=200
     )
 
 @app.route(route="prompt/create", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
