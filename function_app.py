@@ -369,26 +369,74 @@ def getUtils(req: func.HttpRequest) -> func.HttpResponse:
 @app.route(route="utils/podium", auth_level=func.AuthLevel.FUNCTION, methods=["GET"])
 def getPodium(req: func.HttpRequest) -> func.HttpResponse:
     """
-    returns a distionary of lists of players with the top 3 points per game ration (ppgr = total_score/games_played)
+    returns a dictionary of lists of players with the top 3 points per game ration (ppgr = total_score/games_played)
     if same ppgr, sort by increasing number of games, then increasing alphabetical order of username
     """
     logging.info('Python HTTP trigger function processed a request. Get Podium')
 
-    # TODO: get all players
+    # get all players
+    players = PlayerContainerProxy.read_all_items()
 
-    # TODO: calculate ppgr for all players
+    # calculate ppgr for all players
+    # [(username, ppgr, games_played, total_score)]
+    playerStats = []
+    for player in players:
+        username = player.get('username')
+        games_played = player.get('games_played')
+        total_score = player.get('total_score')
+        if games_played == 0:
+            ppgr = 0
+        else:
+            ppgr = total_score / games_played
+        playerStats.append((username, ppgr, games_played, total_score))
 
-    # TODO: sort players by ppgr
+    # sort players by ppgr, then games_played, then username
+    sortedPlayers = sorted(playerStats, key=lambda x: (-x[1], x[2], x[0]))
 
-    # TODO: calculate gold silver and bronze players
+    # calculate gold silver and bronze players
     gold = []
     silver = []
     bronze = []
+    try:
+        player = sortedPlayers.pop(0)
+        goldPpgr = player[1]
+        gold.append(player)
+        while sortedPlayers[0][1] == goldPpgr:
+            player = sortedPlayers.pop(0)
+            gold.append(player)
+    except IndexError:
+        pass
+
+    try:
+        player = sortedPlayers.pop(0)
+        silverPpgr = player[1]
+        silver.append(player)
+        while sortedPlayers[0][1] == silverPpgr:
+            player = sortedPlayers.pop(0)
+            silver.append(player)
+    except IndexError:
+        pass
+
+    try:
+        player = sortedPlayers.pop(0)
+        bronzePpgr = player[1]
+        bronze.append(player)
+        while sortedPlayers[0][1] == bronzePpgr:
+            player = sortedPlayers.pop(0)
+            bronze.append(player)
+    except IndexError:
+        pass
+
+    goldDict = [{"username":p[0], "games_player":p[2], "total_score":p[3]} for p in gold]
+    silverDict = [{"username":p[0], "games_player":p[2], "total_score":p[3]} for p in silver]
+    bronzeDict = [{"username":p[0], "games_player":p[2], "total_score":p[3]} for p in bronze]
+
 
     return func.HttpResponse(
             body = json.dumps({
-                "gold": gold, 
-                "silver": silver, 
-                "bronze": bronze
-                })
+                "gold": goldDict, 
+                "silver": silverDict, 
+                "bronze": bronzeDict
+                }),
+            status_code=200
         )
