@@ -305,15 +305,25 @@ def deletePrompt(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Delete Prompt')
 
-    input = req.get_json()
-    username = input.get('username')
-
+    input = json.loads(req.get_json())
+    username = input['player']
     count = 0
-    # TODO: get all prompts authored by player and count
 
-    # TODO: delete all prompts authored by player 
+    # Get all prompts authored by player
+    result = PromptContainerProxy.query_items(
+        query='SELECT * FROM prompt WHERE prompt.username = @username',
+        parameters=[dict(name='@username', value=username)],
+        partition_key=username
+    )
+    
+    # Delete all prompts authored by player, increment count
+    for prompt in result:
+        PromptContainerProxy.delete_item(item=prompt, partition_key=username)
+        count += 1
+ 
     return func.HttpResponse(
-            body = json.dumps({"result": True, "msg": f"{count} prompts deleted" })
+            body = json.dumps({"result": True, "msg": f"{count} prompts deleted" }),
+            status_code=200
         )
 
 @app.route(route="utils/get", auth_level=func.AuthLevel.FUNCTION, methods=["GET"])
