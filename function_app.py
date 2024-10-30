@@ -4,19 +4,28 @@ import json
 import os
 from azure.cosmos import CosmosClient
 from azure.cosmos.exceptions import CosmosHttpResponseError
+import requests
 
 app = func.FunctionApp()
 
-# TODO - update local.settings.json with Azure Text Translation and OpenAI keys and function keys
+# TODO - update local.settings.json with OpenAI keys and function keys
 
 # TODO: prompt limit in translation doent not apply
 # TODO: ask if there are boundaries to score_to_add and game_to_add
 # TODO: return error?? line 144 len(list(result)) > 1
+# TODO: do we use the native language characters or the English characters for the languages?
 
 MyCosmos = CosmosClient.from_connection_string(os.environ['AzureCosmosDBConnectionString'])
 QuiplashDBProxy = MyCosmos.get_database_client(os.environ['DatabaseName'])
 PlayerContainerProxy = QuiplashDBProxy.get_container_client(os.environ['PlayerContainerName'])
 PromptContainerProxy = QuiplashDBProxy.get_container_client(os.environ['PromptContainerName'])
+
+# Translation Serive
+TranslationEndpoint = os.environ['TranslationEndpoint']
+TranslationKey = os.environ['TranslationKey']
+TranslationRegion = os.environ['TranslationRegion']
+# English, Irish, Spanish, Hindi, Chinese Simplified and Polish
+SupportedLanguages = ["en", "ga", "es", "hi", "zh-Hans", "pl"]
 
 @app.route(route="myFirstFunction", auth_level=func.AuthLevel.ANONYMOUS)
 def myFirstFunction(req: func.HttpRequest) -> func.HttpResponse:
@@ -171,30 +180,87 @@ def createPrompt(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Create Prompt')
 
-    input = req.get_json()
-    text = input.get('text')
-    username = input.get('username')
+    input = json.loads(req.get_json())
+    text = input['text']
+    username = input['username']
 
-    # TODO: check if username exists in DB
-    # return func.HttpResponse(
-    #         body = json.dumps({"result": False, "msg": "Player does not exist" })
-    #    )
-
-    # TODO: check if prompt text is valid (length 20 - 100)
-    # return func.HttpResponse(
-    #         body = json.dumps({"result": False, "msg": "Prompt less than 20 characters or more than 100 characters" })
-    #     )
-
-    # TODO: check if language is supported (Azure Text Translation service)
-    # return func.HttpResponse(
-    #         body = json.dumps({"result": False, "msg": "Unsupported language" })
-    #     )
-
-    # TODO: generate translated prompts in: (languages TBD)
-    # TODO: store prompts in DB
-    return func.HttpResponse(
-            body = json.dumps({"result": True, "msg": "OK" })
+    # check if username exists in DB
+    result = PlayerContainerProxy.query_items(
+        query='SELECT * FROM player WHERE player.username = @username',
+        parameters=[dict(name='@username', value=username)],
+        enable_cross_partition_query=True
+    )
+    result = list(result)
+    if len(result) == 0:
+        return func.HttpResponse(
+            body = json.dumps({"result": False, "msg": "Player does not exist" }),
+            status_code=400
         )
+    elif len(result) > 1:
+        # TODO: return error??
+        pass
+    logging.info('Prompt Create: Player exists')
+
+    # check if prompt text is valid (length 20 - 100)
+    if len(text) < 20 or len(text) > 100:
+        return func.HttpResponse(
+                body = json.dumps({"result": False, "msg": "Prompt less than 20 characters or more than 100 characters" }),
+                status_code=400
+            )
+    logging.info('Prompt Create: Prompt text is of valid length')
+
+    # check if language is supported (Azure Text Translation service)
+    detectURL = TranslationEndpoint + "detect"
+    params = {"api-version": "3.0"}
+    headers = {
+        "Ocp-Apim-Subscription-Key": TranslationKey,
+        "Content-Type": "application/json",
+        "Ocp-Apim-Subscription-Region": TranslationRegion
+    }
+    body = [{"text": text}]
+    detectionRequest = requests.post(detectURL, params=params, headers=headers, json=body)
+    detectionResponse = detectionRequest.json()
+    lang = detectionResponse[0]['language']
+    if lang not in SupportedLanguages:
+        return func.HttpResponse(
+                body = json.dumps({"result": False, "msg": "Unsupported language" }),
+                status_code=400
+            )
+    logging.info(f'Prompt Create: Language is supported {lang}')
+    
+    # translate prompt to all supported languages
+    languagesToTranslate = SupportedLanguages.copy()
+    languagesToTranslate.remove(lang)
+    translateURL = TranslationEndpoint + "translate"
+    params = {
+        "api-version": "3.0",
+        "from": lang,
+        "to": languagesToTranslate
+    }
+    headers = {
+        "Ocp-Apim-Subscription-Key": TranslationKey,
+        "Content-Type": "application/json",
+        "Ocp-Apim-Subscription-Region": TranslationRegion
+    }
+    body = [{"text": text}]
+    translationRequest = requests.post(translateURL, params=params, headers=headers, json=body)
+    translationResponse = translationRequest.json()
+    translations = translationResponse[0]['translations']
+    logging.info('Prompt Create: Prompt translated, inserting into DB')
+
+    # prepare document to insert into DB
+    texts = [{"language": lang, "text": text}]
+    for translation in translations:
+        translationDict = {"language": translation['to'], "text": translation['text']}
+        texts.append(translationDict)
+    promptDict = {"username": username, "texts": texts}
+
+    # insert prompt and translations into DB
+    PromptContainerProxy.create_item(body=promptDict, enable_automatic_id_generation=True)
+    return func.HttpResponse(
+        body = json.dumps({"result": True, "msg": "OK" }),
+        status_code=200
+    )
 
 @app.route(route="prompt/suggest", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
 def suggestPrompt(req: func.HttpRequest) -> func.HttpResponse:
