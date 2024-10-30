@@ -335,20 +335,35 @@ def getUtils(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Get Utils')
 
-    input = req.get_json()
-    players = input.get('players')
-    language = input.get('language')
+    input = json.loads( req.get_json() )
+    players = input['players']
+    language = input['language']
 
     prompts = []
-    # [{id, text, username}]
+    # [{prompt_id, text, username}]
 
     for player in players:
-        # TODO: get all prompts authored by player in language
-        # TODO: append to prompts
-        pass
+        # get all prompts authored by player in language
+        result = PromptContainerProxy.query_items(
+            query='SELECT * FROM prompt WHERE prompt.username = @username',
+            parameters=[dict(name='@username', value=player)],
+            partition_key=player
+        )
+
+        # get prompt text in specified language
+        for doc in result:
+            id = doc.get('id')
+            texts = doc.get('texts')
+            for text in texts:
+                if text.get('language') == language:
+                    # append to prompts
+                    prompt = {"id": id, "text": text.get('text'), "username": player}
+                    prompts.append(prompt)
+                    break
 
     return func.HttpResponse(
-            body = json.dumps({prompts})
+            body = json.dumps(prompts),
+            status_code=200
         )
 
 @app.route(route="utils/podium", auth_level=func.AuthLevel.FUNCTION, methods=["GET"])
