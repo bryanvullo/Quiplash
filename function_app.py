@@ -5,15 +5,9 @@ import os
 from azure.cosmos import CosmosClient
 from azure.cosmos.exceptions import CosmosHttpResponseError
 import requests
+from openai import AzureOpenAI
 
 app = func.FunctionApp()
-
-# TODO - update local.settings.json with OpenAI keys and function keys
-
-# TODO: prompt limit in translation doent not apply
-# TODO: ask if there are boundaries to score_to_add and game_to_add
-# TODO: return error?? line 144 len(list(result)) > 1
-# TODO: do we use the native language characters or the English characters for the languages?
 
 MyCosmos = CosmosClient.from_connection_string(os.environ['AzureCosmosDBConnectionString'])
 QuiplashDBProxy = MyCosmos.get_database_client(os.environ['DatabaseName'])
@@ -26,6 +20,12 @@ TranslationKey = os.environ['TranslationKey']
 TranslationRegion = os.environ['TranslationRegion']
 # English, Irish, Spanish, Hindi, Chinese Simplified and Polish
 SupportedLanguages = ["en", "ga", "es", "hi", "zh-Hans", "pl"]
+
+# OpenAI Service
+OpenAIEndpoint = os.environ['OpenAIEndpoint']
+OpenAIKey = os.environ['OpenAIKey']
+OpenApiVersion = "2024-08-01-preview"
+OpenAiClient = AzureOpenAI(azure_endpoint=OpenAIEndpoint, api_key=OpenAIKey, api_version=OpenApiVersion)
 
 @app.route(route="myFirstFunction", auth_level=func.AuthLevel.ANONYMOUS)
 def myFirstFunction(req: func.HttpRequest) -> func.HttpResponse:
@@ -221,7 +221,8 @@ def createPrompt(req: func.HttpRequest) -> func.HttpResponse:
     detectionRequest = requests.post(detectURL, params=params, headers=headers, json=body)
     detectionResponse = detectionRequest.json()
     lang = detectionResponse[0]['language']
-    if lang not in SupportedLanguages:
+    confidence = detectionResponse[0]['score']
+    if lang not in SupportedLanguages or confidence < 0.2:
         return func.HttpResponse(
                 body = json.dumps({"result": False, "msg": "Unsupported language" }),
                 status_code=400
@@ -269,14 +270,31 @@ def suggestPrompt(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Suggest Prompt')
 
-    input = req.get_json()
-    keyword = input.get('keyword')
+    input = json.loads(req.get_json())
+    keyword = input['keyword']
 
-    # TODO: use Azure OpenAI service to suggest prompt - prompt must include keyword
-    suggestion = "SUGGESTED PROMPT"
-    # TODO: check if suggestion is valid (length 20 - 100)
+    logging.info(f"{OpenAIEndpoint}, {OpenAIKey}, {keyword}")
+
+    # Use Azure OpenAI service to suggest prompt - prompt must include keyword and valid length
+    suggestion = ""
+    AIPrompt = f'''Can you suggest a prompt that includes the keyword '{keyword}'? 
+        The prompt must be between 20 and 100 characters long. 
+        Also, the prompt will used in a game of Quiplash. 
+        Please only respond with a prompt, no other information.'''
+    while len(suggestion) < 20 or len(suggestion) > 100 or keyword not in suggestion:
+        result = OpenAiClient.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": 
+                    "Assistant is a large language model trained to generate Quiplash prompts."},
+                {"role": "user", "content": AIPrompt}
+            ]
+        )
+        suggestion = result.choices[0].message.content
+
     return func.HttpResponse(
-            body = json.dumps({"suggestion" : suggestion})
+            body = json.dumps({"suggestion" : suggestion}),
+            status_code=200
         )
 
 @app.route(route="prompt/delete", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
