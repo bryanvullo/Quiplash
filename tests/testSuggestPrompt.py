@@ -3,7 +3,7 @@ import requests
 import json
 from pathlib import Path
 
-class TestCreatePrompt(unittest.TestCase):   
+class TestSuggestPrompt(unittest.TestCase):   
     LOCAL_DEV_URL = "http://localhost:7071/"
     PUBLIC_URL = "https://quiplash-2425-bv1g22.azurewebsites.net/"
     TEST_FUNCTION = "prompt/suggest"

@@ -6,7 +6,7 @@ from azure.cosmos import CosmosClient
 
 from pathlib import Path
 
-class TestUpdatePlayer(unittest.TestCase):   
+class TestDeletePrompt(unittest.TestCase):   
     LOCAL_DEV_URL = "http://localhost:7071/"
     PUBLIC_URL = "https://quiplash-2425-bv1g22.azurewebsites.net/"
     TEST_FUNCTION = "prompt/delete"
@@ -42,7 +42,6 @@ class TestUpdatePlayer(unittest.TestCase):
         "username": "bryanvullo2",
         "text": "What is the best color?"
     }
-    prompts = [prompt1, prompt2, prompt3]
 
 
     @classmethod
