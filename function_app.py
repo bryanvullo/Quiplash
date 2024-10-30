@@ -26,29 +26,7 @@ OpenAIEndpoint = os.environ['OpenAIEndpoint']
 OpenAIKey = os.environ['OpenAIKey']
 OpenApiVersion = "2024-08-01-preview"
 OpenAiClient = AzureOpenAI(azure_endpoint=OpenAIEndpoint, api_key=OpenAIKey, api_version=OpenApiVersion)
-
-@app.route(route="myFirstFunction", auth_level=func.AuthLevel.ANONYMOUS)
-def myFirstFunction(req: func.HttpRequest) -> func.HttpResponse:
-    
-    logging.info('Python HTTP trigger function processed a request.')
-
-    name = req.params.get('name')
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
-
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
-    else:
-        return func.HttpResponse(
-             "Please enter a name",
-             status_code=200
-        )
-    
+  
 @app.route(route="player/register", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
 def registerPlayer(req: func.HttpRequest) -> func.HttpResponse:
     """
