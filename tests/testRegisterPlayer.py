@@ -7,9 +7,10 @@ from azure.cosmos import CosmosClient
 from pathlib import Path
 
 class TestRegisterPlayer(unittest.TestCase):   
-    LOCAL_DEV_URL = "http://localhost:7071/player/register"
-    PUBLIC_URL = "https://quiplash-2425-bv1g22.azurewebsites.net/player/register"
-    TEST_URL = LOCAL_DEV_URL
+    LOCAL_DEV_URL = "http://localhost:7071/"
+    PUBLIC_URL = "https://quiplash-2425-bv1g22.azurewebsites.net/"
+    TEST_FUNCTION = "player/register"
+    TEST_URL = PUBLIC_URL + TEST_FUNCTION
     
     pathToSettings = Path(__file__).parent.parent / 'local.settings.json'
     with open(pathToSettings) as settings_file:
@@ -80,64 +81,74 @@ class TestRegisterPlayer(unittest.TestCase):
         self.assertEqual(response.json()["msg"], "OK")
 
     def test_register_short_username_player(self):
-        response = requests.post(self.TEST_URL, json=json.dumps(self.shortUsernamePlayer))
+        response = requests.post(self.TEST_URL, json=json.dumps(self.shortUsernamePlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["result"], False)
         self.assertEqual(response.json()["msg"], "Username less than 5 characters or more than 15 characters")
     
     def test_register_short_username_boundary_player(self):
-        response = requests.post(self.TEST_URL, json=json.dumps(self.shortUsernameBoundaryPlayer))
+        response = requests.post(self.TEST_URL, json=json.dumps(self.shortUsernameBoundaryPlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["result"], True)
         self.assertEqual(response.json()["msg"], "OK")
 
     def test_register_long_username_player(self):
-        response = requests.post(self.TEST_URL, json=json.dumps(self.longUsernamePlayer))
+        response = requests.post(self.TEST_URL, json=json.dumps(self.longUsernamePlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["result"], False)
         self.assertEqual(response.json()["msg"], "Username less than 5 characters or more than 15 characters")
 
     def test_register_long_username_boundary_player(self):
-        response = requests.post(self.TEST_URL, json=json.dumps(self.longUsernameBoundaryPlayer))
+        response = requests.post(self.TEST_URL, json=json.dumps(self.longUsernameBoundaryPlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["result"], True)
         self.assertEqual(response.json()["msg"], "OK")
     
     def test_register_short_password_player(self):
-        response = requests.post(self.TEST_URL, json=json.dumps(self.shortPasswordPlayer))
+        response = requests.post(self.TEST_URL, json=json.dumps(self.shortPasswordPlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["result"], False)
         self.assertEqual(response.json()["msg"], "Password less than 8 characters or more than 15 characters")
     
     def test_register_short_password_boundary_player(self):
-        response = requests.post(self.TEST_URL, json=json.dumps(self.shortPasswordBoundaryPlayer))
+        response = requests.post(self.TEST_URL, json=json.dumps(self.shortPasswordBoundaryPlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["result"], True)
         self.assertEqual(response.json()["msg"], "OK")
     
     def test_register_long_password_player(self):
-        response = requests.post(self.TEST_URL, json=json.dumps(self.longPasswordPlayer))
+        response = requests.post(self.TEST_URL, json=json.dumps(self.longPasswordPlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["result"], False)
         self.assertEqual(response.json()["msg"], "Password less than 8 characters or more than 15 characters")
     
     def test_register_long_password_boundary_player(self):
-        response = requests.post(self.TEST_URL, json=json.dumps(self.longPasswordBoundaryPlayer))
+        response = requests.post(self.TEST_URL, json=json.dumps(self.longPasswordBoundaryPlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["result"], True)
         self.assertEqual(response.json()["msg"], "OK")
     
     def test_register_existing_player(self):
-        responseGood = requests.post(self.TEST_URL, json=json.dumps(self.validPlayer))
-        responseBad = requests.post(self.TEST_URL, json=json.dumps(self.validPlayer))
+        responseGood = requests.post(self.TEST_URL, json=json.dumps(self.validPlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
+        responseBad = requests.post(self.TEST_URL, json=json.dumps(self.validPlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(responseGood.status_code, 200)
         self.assertEqual(responseGood.json()["result"], True)
@@ -148,13 +159,15 @@ class TestRegisterPlayer(unittest.TestCase):
         self.assertEqual(responseBad.json()["msg"], "Username already exists")
 
     def test_register_db_not_empty(self):
-        response = requests.post(self.TEST_URL, json=json.dumps(self.validPlayer))
+        response = requests.post(self.TEST_URL, json=json.dumps(self.validPlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["result"], True)
         self.assertEqual(response.json()["msg"], "OK")
 
-        response = requests.post(self.TEST_URL, json=json.dumps(self.shortUsernameBoundaryPlayer))
+        response = requests.post(self.TEST_URL, json=json.dumps(self.shortUsernameBoundaryPlayer),
+                                 headers={"x-functions-key": self.FunctionAppKey})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["result"], True)

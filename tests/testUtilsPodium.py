@@ -10,7 +10,7 @@ class TestGetUtils(unittest.TestCase):
     LOCAL_DEV_URL = "http://localhost:7071/"
     PUBLIC_URL = "https://quiplash-2425-bv1g22.azurewebsites.net/"
     TEST_FUNCTION = "utils/podium"
-    TEST_URL = LOCAL_DEV_URL + TEST_FUNCTION
+    TEST_URL = PUBLIC_URL + TEST_FUNCTION
     
     pathToSettings = Path(__file__).parent.parent / 'local.settings.json'
     with open(pathToSettings) as settings_file:
