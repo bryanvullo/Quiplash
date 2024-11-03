@@ -22,8 +22,8 @@ TranslationRegion = os.environ['TranslationRegion']
 SupportedLanguages = ["en", "ga", "es", "hi", "zh-Hans", "pl"]
 
 # OpenAI Service
-OpenAIEndpoint = os.environ['OpenAIEndpoint']
-OpenAIKey = os.environ['OpenAIKey']
+OpenAIEndpoint = os.environ['OAIEndpoint']
+OpenAIKey = os.environ['OAIKey']
 OpenApiVersion = "2024-08-01-preview"
 OpenAiClient = AzureOpenAI(azure_endpoint=OpenAIEndpoint, api_key=OpenAIKey, api_version=OpenApiVersion)
   
