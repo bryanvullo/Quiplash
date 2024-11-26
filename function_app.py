@@ -34,9 +34,9 @@ def registerPlayer(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Register Player')
 
-    input = json.loads( req.get_json() )
-    username = input['username']
-    password = input['password']
+    input = req.get_json()
+    username = input.get('username')
+    password = input.get('password')
 
     # check if username and password are valid
     if len(username) < 5 or len(username) > 15:
@@ -82,9 +82,9 @@ def loginPlayer(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Login Player')
 
-    input = json.loads( req.get_json() )
-    username = input['username']
-    password = input['password']
+    input = req.get_json()
+    username = input.get('username')
+    password = input.get('password')
 
     # check if username and password match in DB
     result = PlayerContainerProxy.query_items(
@@ -110,10 +110,10 @@ def updatePlayer(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Update Player')
 
-    input = json.loads( req.get_json() )
-    username = input['username']
-    game_to_add = input['add_to_games_played']
-    score_to_add = input['add_to_score']
+    input = req.get_json()
+    username = input.get('username')
+    game_to_add = input.get('add_to_games_played')
+    score_to_add = input.get('add_to_score')
 
     # check if username exists in DB
     result = PlayerContainerProxy.query_items(
@@ -158,9 +158,9 @@ def createPrompt(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Create Prompt')
 
-    input = json.loads(req.get_json())
-    text = input['text']
-    username = input['username']
+    input = req.get_json()
+    text = input.get('text')
+    username = input.get('username')
 
     # check if username exists in DB
     result = PlayerContainerProxy.query_items(
@@ -248,8 +248,8 @@ def suggestPrompt(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Suggest Prompt')
 
-    input = json.loads(req.get_json())
-    keyword = input['keyword']
+    input = req.get_json()
+    keyword = input.get('keyword')
 
     logging.info(f"{OpenAIEndpoint}, {OpenAIKey}, {keyword}")
 
@@ -283,8 +283,8 @@ def deletePrompt(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Delete Prompt')
 
-    input = json.loads(req.get_json())
-    username = input['player']
+    input = req.get_json()
+    username = input.get('player')
     count = 0
 
     # Get all prompts authored by player
@@ -313,9 +313,9 @@ def getUtils(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info('Python HTTP trigger function processed a request. Get Utils')
 
-    input = json.loads( req.get_json() )
-    players = input['players']
-    language = input['language']
+    input = req.get_json()
+    players = input.get('players')
+    language = input.get('language')
 
     prompts = []
     # [{prompt_id, text, username}]
