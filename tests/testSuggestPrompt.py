@@ -20,7 +20,7 @@ class TestSuggestPrompt(unittest.TestCase):
         Test the suggest prompt function
         '''
 
-        response = requests.post(self.TEST_URL, json=json.dumps({"keyword": "food"}),
+        response = requests.post(self.TEST_URL, json=({"keyword": "food"}),
                                  headers={'x-functions-key': self.FunctionAppKey})
         
         print(response.text)

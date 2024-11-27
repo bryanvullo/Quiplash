@@ -97,12 +97,12 @@ class TestGetUtils(unittest.TestCase):
         '''
         REGISTER_URL = cls.TEST_URL.replace("utils/podium", "player/register")
         for player in cls.players:
-            requests.post(REGISTER_URL, json=json.dumps(player),
+            requests.post(REGISTER_URL, json=(player),
                           headers={"x-functions-key": cls.FunctionAppKey} )
         
         UPDATE_URL = cls.TEST_URL.replace("utils/podium", "player/update")
         for update in cls.updates:
-            requests.put(UPDATE_URL, json=json.dumps(update),
+            requests.put(UPDATE_URL, json=(update),
                           headers={"x-functions-key": cls.FunctionAppKey} )
         
     @classmethod

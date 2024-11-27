@@ -50,9 +50,9 @@ class TestDeletePrompt(unittest.TestCase):
         Register 2 players before testing
         '''
         REGISTER_URL = cls.TEST_URL.replace("prompt/delete", "player/register")
-        requests.post(REGISTER_URL, json=json.dumps(cls.player),
+        requests.post(REGISTER_URL, json=(cls.player),
                       headers={"x-functions-key": cls.FunctionAppKey} )
-        requests.post(REGISTER_URL, json=json.dumps(cls.player2),
+        requests.post(REGISTER_URL, json=(cls.player2),
                         headers={"x-functions-key": cls.FunctionAppKey} )
         
     @classmethod
@@ -69,11 +69,11 @@ class TestDeletePrompt(unittest.TestCase):
         '''
         
         CREATE_URL = self.TEST_URL.replace("delete", "create")
-        requests.post(CREATE_URL, json=json.dumps(self.prompt1),
+        requests.post(CREATE_URL, json=(self.prompt1),
                       headers={"x-functions-key": self.FunctionAppKey} )
-        requests.post(CREATE_URL, json=json.dumps(self.prompt2),
+        requests.post(CREATE_URL, json=(self.prompt2),
                         headers={"x-functions-key": self.FunctionAppKey} )
-        requests.post(CREATE_URL, json=json.dumps(self.prompt3),
+        requests.post(CREATE_URL, json=(self.prompt3),
                         headers={"x-functions-key": self.FunctionAppKey} )
         
     def tearDown(self):
@@ -91,7 +91,7 @@ class TestDeletePrompt(unittest.TestCase):
         self.assertEqual(len(list(self.PromptContainerProxy.read_all_items())), 3)
 
         body = {'player' : self.prompt3.get('username')}
-        response = requests.post(self.TEST_URL, json=json.dumps(body),
+        response = requests.post(self.TEST_URL, json=(body),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)
@@ -108,7 +108,7 @@ class TestDeletePrompt(unittest.TestCase):
         self.assertEqual(len(list(self.PromptContainerProxy.read_all_items())), 3)
 
         body = {'player' : self.prompt1.get('username')}
-        response = requests.post(self.TEST_URL, json=json.dumps(body),
+        response = requests.post(self.TEST_URL, json=(body),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)
@@ -125,7 +125,7 @@ class TestDeletePrompt(unittest.TestCase):
         self.assertEqual(len(list(self.PromptContainerProxy.read_all_items())), 3)
 
         body = {'player' : 'bryanvullo3'}
-        response = requests.post(self.TEST_URL, json=json.dumps(body),
+        response = requests.post(self.TEST_URL, json=(body),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)

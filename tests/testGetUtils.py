@@ -62,23 +62,23 @@ class TestGetUtils(unittest.TestCase):
         Add prompts before testing
         '''
         REGISTER_URL = cls.TEST_URL.replace("utils/get", "player/register")
-        requests.post(REGISTER_URL, json=json.dumps(cls.player),
+        requests.post(REGISTER_URL, json=(cls.player),
                       headers={"x-functions-key": cls.FunctionAppKey} )
-        requests.post(REGISTER_URL, json=json.dumps(cls.player2),
+        requests.post(REGISTER_URL, json=(cls.player2),
                         headers={"x-functions-key": cls.FunctionAppKey} )
-        requests.post(REGISTER_URL, json=json.dumps(cls.player3),
+        requests.post(REGISTER_URL, json=(cls.player3),
                         headers={"x-functions-key": cls.FunctionAppKey} )
         
         CREATE_URL = cls.TEST_URL.replace("utils/get", "prompt/create")
-        requests.post(CREATE_URL, json=json.dumps(cls.prompt1),
+        requests.post(CREATE_URL, json=(cls.prompt1),
                       headers={"x-functions-key": cls.FunctionAppKey} )
-        requests.post(CREATE_URL, json=json.dumps(cls.prompt2),
+        requests.post(CREATE_URL, json=(cls.prompt2),
                         headers={"x-functions-key": cls.FunctionAppKey} )
-        requests.post(CREATE_URL, json=json.dumps(cls.prompt3),
+        requests.post(CREATE_URL, json=(cls.prompt3),
                         headers={"x-functions-key": cls.FunctionAppKey} )
-        requests.post(CREATE_URL, json=json.dumps(cls.prompt4),
+        requests.post(CREATE_URL, json=(cls.prompt4),
                         headers={"x-functions-key": cls.FunctionAppKey} )
-        requests.post(CREATE_URL, json=json.dumps(cls.prompt5),
+        requests.post(CREATE_URL, json=(cls.prompt5),
                         headers={"x-functions-key": cls.FunctionAppKey} )
         
     @classmethod
@@ -101,7 +101,7 @@ class TestGetUtils(unittest.TestCase):
             "players" : ["bryanvullo", "bryanvullo3"],
             "language" : "en"
         }
-        response = requests.get(self.TEST_URL, json=json.dumps(body),
+        response = requests.get(self.TEST_URL, json=(body),
                                 headers={"x-functions-key": self.FunctionAppKey})
         
         self.assertEqual(response.status_code, 200)
@@ -129,7 +129,7 @@ class TestGetUtils(unittest.TestCase):
             "players" : ["bryanvullo3"],
             "language" : "es"
         }
-        response = requests.get(self.TEST_URL, json=json.dumps(body),
+        response = requests.get(self.TEST_URL, json=(body),
                                 headers={"x-functions-key": self.FunctionAppKey})
         
         self.assertEqual(response.status_code, 200)

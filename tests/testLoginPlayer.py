@@ -32,7 +32,7 @@ class TestLoginPlayer(unittest.TestCase):
         Register a player before testing
         '''
         REGISTER_URL = cls.TEST_URL.replace("login", "register")
-        requests.post(REGISTER_URL, json=json.dumps(cls.validPlayer),
+        requests.post(REGISTER_URL, json=cls.validPlayer,
                       headers={"x-functions-key": cls.FunctionAppKey} )
         
     @classmethod
@@ -47,7 +47,8 @@ class TestLoginPlayer(unittest.TestCase):
         '''
         Test a valid login
         '''
-        response = requests.get(self.TEST_URL, json=json.dumps(self.validPlayer),
+
+        response = requests.get(self.TEST_URL, json=self.validPlayer,
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)
@@ -61,7 +62,7 @@ class TestLoginPlayer(unittest.TestCase):
         inexistentPlayer = self.validPlayer.copy()
         inexistentPlayer['username'] = "inexistent"
 
-        response = requests.get(self.TEST_URL, json=json.dumps(inexistentPlayer),
+        response = requests.get(self.TEST_URL, json=inexistentPlayer,
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 401)
@@ -75,7 +76,7 @@ class TestLoginPlayer(unittest.TestCase):
         wrongPasswordPlayer = self.validPlayer.copy()
         wrongPasswordPlayer['password'] = "wrongpassword"
 
-        response = requests.get(self.TEST_URL, json=json.dumps(wrongPasswordPlayer),
+        response = requests.get(self.TEST_URL, json=wrongPasswordPlayer,
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 401)

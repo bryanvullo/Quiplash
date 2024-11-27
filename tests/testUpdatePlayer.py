@@ -36,7 +36,7 @@ class TestUpdatePlayer(unittest.TestCase):
         Register a player before testing
         '''
         REGISTER_URL = self.TEST_URL.replace("update", "register")
-        requests.post(REGISTER_URL, json=json.dumps(self.player),
+        requests.post(REGISTER_URL, json=(self.player),
                       headers={"x-functions-key": self.FunctionAppKey} )
         
     def tearDown(self):
@@ -50,7 +50,7 @@ class TestUpdatePlayer(unittest.TestCase):
         '''
         Test a valid update
         '''
-        response = requests.put(self.TEST_URL, json=json.dumps(self.update),
+        response = requests.put(self.TEST_URL, json=(self.update),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)

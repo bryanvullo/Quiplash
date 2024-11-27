@@ -83,7 +83,7 @@ class TestCreatePrompt(unittest.TestCase):
         Register a player before testing
         '''
         REGISTER_URL = self.TEST_URL.replace("prompt/create", "player/register")
-        requests.post(REGISTER_URL, json=json.dumps(self.player),
+        requests.post(REGISTER_URL, json=self.player,
                       headers={"x-functions-key": self.FunctionAppKey} )
         
     def tearDown(self):
@@ -99,7 +99,7 @@ class TestCreatePrompt(unittest.TestCase):
         '''
         Test a valid prompt in English
         '''
-        response = requests.post(self.TEST_URL, json=json.dumps(self.promptEnglish),
+        response = requests.post(self.TEST_URL, json=self.promptEnglish,
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)
@@ -115,7 +115,7 @@ class TestCreatePrompt(unittest.TestCase):
         '''
         Test a valid prompt in Hindi
         '''
-        response = requests.post(self.TEST_URL, json=json.dumps(self.promptHindi),
+        response = requests.post(self.TEST_URL, json=self.promptHindi,
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)
@@ -131,7 +131,7 @@ class TestCreatePrompt(unittest.TestCase):
         '''
         Test a valid prompt in Irish
         '''
-        response = requests.post(self.TEST_URL, json=json.dumps(self.promptIrish),
+        response = requests.post(self.TEST_URL, json=self.promptIrish,
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)
@@ -147,7 +147,7 @@ class TestCreatePrompt(unittest.TestCase):
         '''
         Test a valid prompt in Spanish
         '''
-        response = requests.post(self.TEST_URL, json=json.dumps(self.promptSpanish),
+        response = requests.post(self.TEST_URL, json=(self.promptSpanish),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)
@@ -163,7 +163,7 @@ class TestCreatePrompt(unittest.TestCase):
         '''
         Test a valid prompt in Chinese
         '''
-        response = requests.post(self.TEST_URL, json=json.dumps(self.promptChinese),
+        response = requests.post(self.TEST_URL, json=(self.promptChinese),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)
@@ -179,7 +179,7 @@ class TestCreatePrompt(unittest.TestCase):
         '''
         Test a valid prompt in Polish
         '''
-        response = requests.post(self.TEST_URL, json=json.dumps(self.promptPolish),
+        response = requests.post(self.TEST_URL, json=(self.promptPolish),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 200)
@@ -195,7 +195,7 @@ class TestCreatePrompt(unittest.TestCase):
         '''
         Test a prompt that is too long
         '''
-        response = requests.post(self.TEST_URL, json=json.dumps(self.promptLong),
+        response = requests.post(self.TEST_URL, json=(self.promptLong),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 400)
@@ -206,7 +206,7 @@ class TestCreatePrompt(unittest.TestCase):
         '''
         Test a prompt that is too short
         '''
-        response = requests.post(self.TEST_URL, json=json.dumps(self.promptShort),
+        response = requests.post(self.TEST_URL, json=(self.promptShort),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 400)
@@ -217,7 +217,7 @@ class TestCreatePrompt(unittest.TestCase):
         '''
         Test a prompt in an unsupported language
         '''
-        response = requests.post(self.TEST_URL, json=json.dumps(self.promptItalian),
+        response = requests.post(self.TEST_URL, json=(self.promptItalian),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 400)
@@ -228,7 +228,7 @@ class TestCreatePrompt(unittest.TestCase):
         '''
         Test a prompt for a player that does not exist
         '''
-        response = requests.post(self.TEST_URL, json=json.dumps(self.promptNotPlayer),
+        response = requests.post(self.TEST_URL, json=(self.promptNotPlayer),
                                  headers={"x-functions-key": self.FunctionAppKey} )
         
         self.assertEqual(response.status_code, 400)
