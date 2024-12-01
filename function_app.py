@@ -259,7 +259,11 @@ def suggestPrompt(req: func.HttpRequest) -> func.HttpResponse:
         The prompt must be between 20 and 100 characters long. 
         Also, the prompt will used in a game of Quiplash. 
         Please only respond with a prompt, no other information.'''
-    while len(suggestion) < 20 or len(suggestion) > 100 or keyword not in suggestion:
+    valid = False
+    for i in range(4):
+        if len(suggestion) >= 20 and len(suggestion) <= 100 and keyword in suggestion:
+            valid = True
+            break
         result = OpenAiClient.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -269,6 +273,12 @@ def suggestPrompt(req: func.HttpRequest) -> func.HttpResponse:
             ]
         )
         suggestion = result.choices[0].message.content
+    
+    if not valid:
+        return func.HttpResponse(
+            body = json.dumps({"suggestion" : "Cannot generate suggestion" }),
+            status_code=200
+        )
 
     return func.HttpResponse(
             body = json.dumps({"suggestion" : suggestion}),
@@ -405,9 +415,9 @@ def getPodium(req: func.HttpRequest) -> func.HttpResponse:
     except IndexError:
         pass
 
-    goldDict = [{"username":p[0], "games_player":p[2], "total_score":p[3]} for p in gold]
-    silverDict = [{"username":p[0], "games_player":p[2], "total_score":p[3]} for p in silver]
-    bronzeDict = [{"username":p[0], "games_player":p[2], "total_score":p[3]} for p in bronze]
+    goldDict = [{"username":p[0], "games_played":p[2], "total_score":p[3]} for p in gold]
+    silverDict = [{"username":p[0], "games_played":p[2], "total_score":p[3]} for p in silver]
+    bronzeDict = [{"username":p[0], "games_played":p[2], "total_score":p[3]} for p in bronze]
 
 
     return func.HttpResponse(
